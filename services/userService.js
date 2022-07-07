@@ -12,7 +12,9 @@ class UserService {
             if (!IPAddress) throw new Error() 
             if (!email || !password || role === 'USER') { //Default user registration
                 const oldUser = await User.findOne({where: {IP: IPAddress}, include: Basket})
-                if (oldUser && oldUser.role === 'USER') return {user: oldUser.dataValues, basket: oldUser.basket}
+                if (oldUser && oldUser.role === 'USER') {
+                    return {user: oldUser.dataValues, basket: oldUser.basket}
+                }
                 let newUser = await User.create({
                     email: email ? email : null,
                     password: password ? password : null,
