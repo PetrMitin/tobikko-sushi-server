@@ -9,6 +9,7 @@ class UserController {
         try {
             const IP = req.ip
             const {email, password, role} = req.body
+            console.log(`body: ${JSON.stringify(req.body)}`);
             const registrationResult = await UserService.registration(IP, email, password, role)
             if (registrationResult instanceof ApiError) return next(registrationResult)
             if (registrationResult.user.role === 'ADMIN') {
@@ -24,6 +25,7 @@ class UserController {
     async login(req, res, next) {
         try {
             const IPAddress = req.ip
+            console.log(`body: ${JSON.stringify(req.body)}`);
             const {email, password, role} = req.body
             const loginResults = await UserService.login(IPAddress, email, password, role)
             if (loginResults instanceof ApiError) return next(loginResults)
@@ -39,6 +41,7 @@ class UserController {
     async logout(req, res, next) {
         try {
             const {refreshToken} = req.cookies
+            console.log(refreshToken);
             await UserService.logout(refreshToken)
             res.clearCookie('refreshToken')
             return res.sendStatus(200)

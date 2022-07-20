@@ -13,11 +13,25 @@ const app = express()
 
 const PORT = process.env.PORT || 4000
 
-app.use(cors())
+app.options('*', cors({
+    credentials: true,
+    origin: process.env.CLIENT_URL
+}))
+app.use(cors({
+    credentials: true,
+    origin: process.env.CLIENT_URL
+}))
+
 app.use(express.json())
 app.use(fileUpload({}))
 app.use(cookieParser())
 app.use(express.static(path.resolve(__dirname, 'static')))
+if(process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.resolve(__dirname, '..', 'client', 'build')))
+    app.get('/', (req, res) => {
+        res.sendFile(path.resolve(__dirname, '..', 'client', 'build', 'index.html'))
+        })
+}
 app.use('/api', rootRouter)
 app.use(errorHandlingMiddleware)
 

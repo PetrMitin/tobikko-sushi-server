@@ -39,7 +39,7 @@ class UserService {
             } else if (email && password && role === 'ADMIN') { //Admin registration
                 if (!String(email).match(/^\S+@\S+\.\S+$/)) return ApiError.badRequest('Invalid data')
                 const oldUser = await User.findOne({where: {email}})
-                if (oldUser) return ApiError.badRequest('Something went wrong...')
+                if (oldUser) return ApiError.badRequest('User with this email already exists!')
                 const hashedPassword = await bcrypt.hash(password, 4)
                 const userConfirmationLink = uuid.v4()
                 const adminConfirmationLink = uuid.v4()
