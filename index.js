@@ -29,14 +29,14 @@ app.use(express.json())
 app.use(fileUpload({}))
 app.use(cookieParser())
 app.use(express.static(path.resolve(__dirname, 'static')))
+app.use('/api', rootRouter)
+app.use(errorHandlingMiddleware)
 if(process.env.NODE_ENV === 'production') {
     app.use(express.static(path.resolve(__dirname, '..', 'client', 'build')))
-    app.get('/', (req, res) => {
+    app.get('/*', (req, res) => {
         res.sendFile(path.resolve(__dirname, '..', 'client', 'build', 'index.html'))
         })
 }
-app.use('/api', rootRouter)
-app.use(errorHandlingMiddleware)
 
 const start = async () => {
     try {
