@@ -9,11 +9,11 @@ class UserController {
         try {
             const IP = req.ip
             const {email, password, role} = req.body
-            console.log(`body: ${JSON.stringify(req.body)}`);
+            // console.log(`body: ${JSON.stringify(req.body)}`);
             const registrationResult = await UserService.registration(IP, email, password, role)
             if (registrationResult instanceof ApiError) return next(registrationResult)
             if (registrationResult.user.role === 'ADMIN') {
-                console.log(registrationResult.user)
+                // console.log(registrationResult.user)
                 res.cookie('refreshToken', registrationResult.refreshToken, {maxAge: 15*24*60*60*1000, httpOnly: true})
             }
             return res.status(201).json(registrationResult)
@@ -25,7 +25,7 @@ class UserController {
     async login(req, res, next) {
         try {
             const IPAddress = req.ip
-            console.log(`body: ${JSON.stringify(req.body)}`);
+            // console.log(`body: ${JSON.stringify(req.body)}`);
             const {email, password, role} = req.body
             const loginResults = await UserService.login(IPAddress, email, password, role)
             if (loginResults instanceof ApiError) return next(loginResults)
@@ -41,7 +41,7 @@ class UserController {
     async logout(req, res, next) {
         try {
             const {refreshToken} = req.cookies
-            console.log(refreshToken);
+            // console.log(refreshToken);
             await UserService.logout(refreshToken)
             res.clearCookie('refreshToken')
             return res.sendStatus(200)
@@ -75,7 +75,7 @@ class UserController {
     async refresh(req, res, next) {
         try {
             const refreshToken = req.cookies?.refreshToken
-            console.log(refreshToken, req.cookies);
+            // console.log(refreshToken, req.cookies);
             const newTokens = await UserService.refresh(refreshToken)
             if (newTokens instanceof ApiError) return next(newTokens)
             res.cookie('refreshToken', newTokens.refreshToken, {maxAge: 15*24*60*60*1000, httpOnly: true})

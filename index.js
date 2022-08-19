@@ -21,7 +21,10 @@ app.use(cors({
     credentials: true,
     origin: process.env.CLIENT_URL
 }))
-
+app.all('*', (req, res, next) => {
+    res.header("access-control-allow-origin", req.headers.origin)
+    next()
+})
 app.use(express.json())
 app.use(fileUpload({}))
 app.use(cookieParser())

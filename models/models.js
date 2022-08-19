@@ -1,9 +1,12 @@
 const sequelize = require('../db')
+const validator = require('validator')
 const {DataTypes} = require('sequelize')
 
 const User = sequelize.define('user', {
     id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+    name: {type: DataTypes.STRING, allowNull: true},
     email: {type: DataTypes.STRING, allowNull: true},
+    phone: {type: DataTypes.STRING, allowNull: true},
     password: {type: DataTypes.STRING, allowNull: true},
     role: {type: DataTypes.STRING, allowNull: false, defaultValue: 'USER'},
     IP: {type: DataTypes.STRING, allowNull: false},
@@ -11,6 +14,11 @@ const User = sequelize.define('user', {
     adminConfirmationLink: {type: DataTypes.STRING, allowNull: true},
     isConfirmedEmail: {type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false},
     isConfirmedAdmin: {type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false}
+}, {hooks: true})
+
+const Address = sequelize.define('address', {
+    id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+    address: {type: DataTypes.STRING, allowNull: false}
 }, {hooks: true})
 
 const Token = sequelize.define('token', {
@@ -33,13 +41,13 @@ const MenuItem = sequelize.define('menu_item', {
     name: {type: DataTypes.STRING, allowNull: false},
     price: {type: DataTypes.FLOAT, allowNull: false},
     massInGramms: {type: DataTypes.FLOAT, allowNull: false},
-    calories: {type: DataTypes.FLOAT, allowNull: false},
     image: {type: DataTypes.STRING}
 }, {hooks: true})
 
 const MenuItemType = sequelize.define('menu_item_type', {
     id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-    name: {type: DataTypes.STRING, unique: true, allowNull: false}
+    name: {type: DataTypes.STRING, unique: true, allowNull: false},
+    icon: {type: DataTypes.STRING}
 }, {hooks: true})
 
 const MenuItemInfo = sequelize.define('menu_item_info', {
@@ -58,6 +66,9 @@ Token.belongsTo(User, {onDelete: 'CASCADE'})
 User.hasOne(Basket, {onDelete: 'CASCADE'})
 Basket.belongsTo(User, {onDelete: 'CASCADE'})
 
+User.hasMany(Address, {onDelete: 'CASCADE'})
+Address.belongsTo(User, {onDelete: 'CASCADE'})
+
 Basket.hasMany(BasketItem, {onDelete: 'CASCADE'})
 BasketItem.belongsTo(Basket, {onDelete: 'CASCADE'})
 
@@ -73,6 +84,7 @@ MenuItemType.belongsToMany(MenuItem, {through: TypeItem}, {onDelete: 'CASCADE'})
 module.exports = {
     User,
     Token,
+    Address,
     Basket,
     BasketItem,
     MenuItem,

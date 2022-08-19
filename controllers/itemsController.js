@@ -36,20 +36,20 @@ class ItemsController {
     async createItem(req, res, next) {
         try {
             //menuItemTypesId: array of typeId, info: array of {title, info}
-            let {name, price, massInGramms, calories, menuItemTypesId, info} = req.body
+            let {name, price, massInGramms, menuItemTypesId, info} = req.body
             const image = req.files?.image
-            if (!name || !price || !massInGramms || !calories || !image || !menuItemTypesId || !menuItemTypesId.length) {
+            console.log(name, price, massInGramms, menuItemTypesId, info, image)
+            if (!name || !price || !massInGramms || !image || !menuItemTypesId || !menuItemTypesId.length) {
                 return next(ApiError.badRequest('Invalid data'))
             }
             info = info ? JSON.parse(info) : []
             menuItemTypesId = menuItemTypesId ? JSON.parse(menuItemTypesId) : []
-            const imgFileName = uuid.v4() + '.jpg'
+            const imgFileName = uuid.v4() + path.extname(image.name)
             image.mv(path.resolve(__dirname, '..', 'static', imgFileName))
             const newItem = await MenuItem.create({
                 name,
                 price: parseFloat(price),
                 massInGramms: parseFloat(massInGramms),
-                calories: parseFloat(calories),
                 image: imgFileName
             }, {returning: true})
             const itemTypes = await Promise.all(menuItemTypesId.map(async id => {
@@ -62,7 +62,7 @@ class ItemsController {
             }))
             const infos = await Promise.all(info.map(async ({title, info}) => {
                                     if (!title || !info) return 
-                                    const newInfo = await MenuItemInfo.create({title, info}, {returning: true})
+                                    const newInfo = await MenuItemInfo.create({title, info, menuItemId: newItem.id}, {returning: true})
                                     return newInfo
                                 }))
             return res.status(201).json({...newItem.dataValues, infos, itemTypes})
@@ -78,12 +78,11 @@ class ItemsController {
             let oldItem = await IDValidators.isItemIdValid(id)
             if (!oldItem) return next(ApiError.badRequest('Invalid ID'))
             oldItem = oldItem.dataValues
-            let {name, price, massInGramms, calories, menuItemTypesId, info} = req.body
+            let {name, price, massInGramms, menuItemTypesId, info} = req.body
             const image = req.files?.image
             name = name ? name : oldItem.name
             price = price ? parseFloat(price) : oldItem.price
             massInGramms = massInGramms ? parseFloat(massInGramms) : oldItem.massInGramms
-            calories = calories ? parseFloat(calories) : oldItem.calories
             let imgFileName = oldItem.image
             if (image) {
                 fs.unlink(path.resolve(__dirname, '..', 'static', oldItem.image), (err) => {
@@ -91,7 +90,7 @@ class ItemsController {
                         return
                     }
                 })
-                imgFileName = uuid.v4() + '.jpg'
+                imgFileName = uuid.v4() + path.extname(image.name)
                 image.mv(path.resolve(__dirname, '..', 'static', imgFileName))
             }
             info = info ? JSON.parse(info) : []
@@ -103,32 +102,34 @@ class ItemsController {
                     try {
                         const type = await IDValidators.isTypeIdValid(id)
                         if (!type) return
-                        return await TypeItem.create({
+                        return (await TypeItem.create({
                             menuItemId: oldItem.id,
                             menuItemTypeId: id
-                        })
+                        })).dataValues
                     } catch(e) {
                         return 
                     }
                 }))
             }
-            const newInfos = await Promise.all(info.map(async ({title, info}) => {
-                try {
-                    if (!title || !info) return
-                    return await MenuItemInfo.create({title, info, menuItemId: oldItem.id})
-                } catch(e) {
-                    return
-                }
-            }))
+            let newInfos = []
+            if (info.length > 0) {
+                await MenuItemInfo.destroy({where: {menuItemId: oldItem.id}})
+                newInfos = await Promise.all(info.map(async ({title, info}) => {
+                    try {
+                        if (!title || !info) return
+                        return (await MenuItemInfo.create({title, info, menuItemId: oldItem.id})).dataValues
+                    } catch(e) {
+                        return
+                    }
+                }))
+            }
             const [nAffected, newItems] = await MenuItem.update({
                 name,
                 price,
                 massInGramms,
-                calories,
                 image: imgFileName
             }, {where: {id}, returning: true})
             itemTypes = itemTypes.filter(elem => elem)
-            console.log(oldItem);
             return res.json({
                 ...newItems[0].dataValues, 
                 infos: newInfos.filter(elem => elem), 
