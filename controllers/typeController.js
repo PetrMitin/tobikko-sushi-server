@@ -31,7 +31,7 @@ class TypeController {
             const {name} = req.body
             const icon = req.files?.icon
             if (!name || !icon) return next(ApiError.badRequest('Invalid Data Specified!'))
-            const iconFileName = uuid.v4() + path.extname(image.name)
+            const iconFileName = uuid.v4() + path.extname(icon.name)
             icon.mv(path.resolve(__dirname, '..', 'static', iconFileName))
             const newType = await MenuItemType.create({name, icon: iconFileName}, {returning: true})
             return res.status(201).json(newType)
@@ -55,7 +55,7 @@ class TypeController {
                         return
                     }
                 })
-                iconFileName = uuid.v4() + path.extname(image.name)
+                iconFileName = uuid.v4() + path.extname(icon.name)
                 icon.mv(path.resolve(__dirname, '..', 'static', iconFileName))
             }
             const [nAffected, newTypes] = await MenuItemType.update({name, icon: iconFileName}, {where: {id}, returning: true})
