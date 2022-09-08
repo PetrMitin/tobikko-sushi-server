@@ -75,7 +75,7 @@ class UserController {
     async refresh(req, res, next) {
         try {
             const refreshToken = req.cookies?.refreshToken
-            // console.log(refreshToken, req.cookies);
+            console.log(refreshToken, req.cookies);
             const newTokens = await UserService.refresh(refreshToken)
             if (newTokens instanceof ApiError) return next(newTokens)
             res.cookie('refreshToken', newTokens.refreshToken, {maxAge: 15*24*60*60*1000, httpOnly: true})
