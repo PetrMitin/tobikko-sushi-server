@@ -40,6 +40,7 @@ const MenuItem = sequelize.define('menu_item', {
     id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
     name: {type: DataTypes.STRING, allowNull: false},
     price: {type: DataTypes.FLOAT, allowNull: false},
+    halfportionprice: {type: DataTypes.FLOAT, allowNull: true, defaultValue: null}, 
     massInGramms: {type: DataTypes.FLOAT, allowNull: false},
     image: {type: DataTypes.STRING}
 }, {hooks: true})

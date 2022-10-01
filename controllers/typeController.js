@@ -30,6 +30,8 @@ class TypeController {
         try {
             const {name} = req.body
             const icon = req.files?.icon
+            console.log('HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+            console.log(name, icon, req.files, req.body);
             if (!name || !icon) return next(ApiError.badRequest('Invalid Data Specified!'))
             const iconFileName = uuid.v4() + path.extname(icon.name)
             icon.mv(path.resolve(__dirname, '..', 'static', iconFileName))

@@ -48,7 +48,9 @@ class EmailService {
         const deliveryPrice = parseInt(orderData?.deliveryRegion?.price || '0') || 0
         let totalPrice = deliveryPrice
         const menuItems = await paymentService.getMenuItemsByBasketItems(orderData.currentBasketItems)
-        console.log(menuItems);
+        const discounts = orderData.discounts
+        let totalMultiplier = 1
+        discounts.forEach(discount => totalMultiplier *= discount.multiplier)
         await this.transporter.sendMail({
             from: process.env.SMTP_USER,
             to,
@@ -61,24 +63,37 @@ class EmailService {
                     <h3>Электронная почта: ${orderData.email}</h3> 
                     <h3>Адрес: ${orderData.address}</h3>
                     <h3>Способ оплаты: ${orderData.paymentMethod === 'courier' ? 'курьеру' : 'онлайн'}</h3>
+                    <h3>Скидки</h3>
+                    <ul>
+                        ${discounts.map(({name, multiplier}) => {
+                            return `<li>Название: ${name}, скидка: ${Math.round((1 - multiplier)*100)}%</li>`
+                        })}
+                    </ul>
                     <h3>Позиции меню: </h3>
                     <ul>
                         ${menuItems.map(menuItem => {
-                            const amount = orderData.currentBasketItems.find(data => data.menuItemId === menuItem.id).amount || 0
+                            const basketItem = orderData.currentBasketItems.find(data => data.menuItemId === menuItem.id)
+                            const amount = basketItem.amount || 0
+                            const isHalfPortion = basketItem.isHalfPortion
                             if (amount === 0) return
-                            totalPrice += amount * menuItem.price
+                            const currentPrice = Math.ceil((isHalfPortion 
+                                                ? amount * (menuItem.halfportionprice || 0) 
+                                                : amount * menuItem.price) * totalMultiplier)
+                            totalPrice += currentPrice
                             return `<li>
                                 <ul>
                                     <li>Наименование: ${menuItem.name}</li>
-                                    <li>Цена: ${menuItem.price} р.</li>
-                                    <li>Количество: ${orderData.currentBasketItems.find(data => data.menuItemId === menuItem.id).amount || 0}</li>
+                                    <li>Половина порции: ${isHalfPortion ? 'ДА' : 'НЕТ'}</li>
+                                    <li>Цена без скидок: ${isHalfPortion ? menuItem.halfportionprice : menuItem.price} р.</li>
+                                    <li>Цена со скидками: ${(isHalfPortion ? menuItem.halfportionprice : menuItem.price) * totalMultiplier} р.</li>
+                                    <li>Количество: ${amount}</li>
                                 </ul>
                                 <br/>    
                             </li>`}
                         ).join('\n')}
                     </ul>
                     <h3>Доставка: ${deliveryPrice} р.</h3>
-                    <h3>Сумма: ${totalPrice} р.</h3>
+                    <h3>Сумма с доставкой: ${totalPrice} р.</h3>
                     <h3>Комментарий</h3>
                     <p>${orderData.comment}</p>
                 </div>`

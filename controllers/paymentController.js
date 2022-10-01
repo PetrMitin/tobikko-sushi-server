@@ -11,6 +11,7 @@ class PaymentController {
             deliveryRegion, 
             paymentMethod, 
             currentBasketItems,
+            discounts,
             comment
         } = req.body
         req.orderData = {
@@ -22,6 +23,7 @@ class PaymentController {
             deliveryRegion, 
             paymentMethod, 
             currentBasketItems,
+            discounts,
             comment
         }
         console.log(req.orderData);
