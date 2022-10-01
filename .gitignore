@@ -6,3 +6,6 @@ node_modules
 
 ssl
 /ssl
+
+static
+/static
