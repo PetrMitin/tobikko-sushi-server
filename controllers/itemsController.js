@@ -36,7 +36,7 @@ class ItemsController {
     async createItem(req, res, next) {
         try {
             //menuItemTypesId: array of typeId, info: array of {title, info}
-            let {name, price, halfportionprice, massInGramms, menuItemTypesId, info} = req.body
+            let {name, price, halfportionprice, halfportionmass, massInGramms, menuItemTypesId, info} = req.body
             const image = req.files?.image
             console.log(name, price, massInGramms, menuItemTypesId, info, image)
             console.log(req.files)
@@ -51,6 +51,7 @@ class ItemsController {
                 name,
                 price: parseFloat(price),
                 halfportionprice: halfportionprice ? parseFloat(halfportionprice) : null,
+                halfportionmass: halfportionmass ? parseFloat(halfportionmass) : parseFloat(massInGramms),
                 massInGramms: parseFloat(massInGramms),
                 image: imgFileName
             }, {returning: true})
@@ -80,11 +81,12 @@ class ItemsController {
             let oldItem = await IDValidators.isItemIdValid(id)
             if (!oldItem) return next(ApiError.badRequest('Invalid ID'))
             oldItem = oldItem.dataValues
-            let {name, price, halfportionprice, massInGramms, menuItemTypesId, info} = req.body
+            let {name, price, halfportionprice, halfportionmass, massInGramms, menuItemTypesId, info} = req.body
             const image = req.files?.image
             name = name ? name : oldItem.name
             price = price ? parseFloat(price) : oldItem.price
             halfportionprice = halfportionprice ? parseFloat(halfportionprice) : oldItem.halfportionprice
+            halfportionmass = halfportionmass? parseFloat(halfportionmass) : oldItem.halfportionmass
             massInGramms = massInGramms ? parseFloat(massInGramms) : oldItem.massInGramms
             let imgFileName = oldItem.image
             if (image) {
@@ -130,6 +132,7 @@ class ItemsController {
                 name,
                 price,
                 halfportionprice,
+                halfportionmass,
                 massInGramms,
                 image: imgFileName
             }, {where: {id}, returning: true})
