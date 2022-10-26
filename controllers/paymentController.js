@@ -1,4 +1,5 @@
-const { sendOrderDataToAdmin } = require("../services/emailService");
+const { sendOrderDataToAdmin, sendOrderToCustomer } = require("../services/emailService");
+const ApiError = require('../error/apiError')
 
 class PaymentController {
     initializePayment(req, res, next) {
@@ -26,15 +27,18 @@ class PaymentController {
             discounts,
             comment
         }
+        console.log('order data');
         console.log(req.orderData);
         next()
     }
 
     //handles courier payment
-    proceedCourierPayment(req, res, next) {
+    async proceedCourierPayment(req, res, next) {
         try {
+            console.log('here');
             if (req.orderData.paymentMethod !== 'courier') return next()
-            sendOrderDataToAdmin(req.orderData, process.env.ADMIN_EMAIL)
+            await sendOrderDataToAdmin(req.orderData, process.env.ADMIN_EMAIL)
+            await sendOrderToCustomer(req.orderData, req.orderData.email)
             res.json({message: 'courier'})
         } catch(e) {
             console.log(e);
@@ -43,10 +47,11 @@ class PaymentController {
     }
 
     //handles online payment proccess
-    proceedOnlinePayment(req, res, next) {
+    async proceedOnlinePayment(req, res, next) {
         try {
             if (req.orderData.paymentMethod !== 'online') return next()
-            sendOrderDataToAdmin(req.orderData, process.env.ADMIN_EMAIL)
+            await sendOrderDataToAdmin(req.orderData, process.env.ADMIN_EMAIL)
+            await sendOrderToCustomer(req.orderData, req.orderData.email)
             res.json({message: 'online'})
         } catch(e) {
             console.log(e);

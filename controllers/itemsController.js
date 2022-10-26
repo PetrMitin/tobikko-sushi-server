@@ -1,9 +1,11 @@
 const {MenuItem, TypeItem, MenuItemType, MenuItemInfo} = require('../models/models')
+const ItemListService = require('../services/itemListService')
 const ApiError = require('../error/apiError')
 const IDValidators = require('../validators/idValidators')
 const path = require('path')
 const uuid = require('uuid')
 const fs = require('fs')
+const { deleteItemFromList, appendItem } = require('../services/itemListService')
 
 class ItemsController {
     // GET /
@@ -68,6 +70,7 @@ class ItemsController {
                                     const newInfo = await MenuItemInfo.create({title, info, menuItemId: newItem.id}, {returning: true})
                                     return newInfo
                                 }))
+            await ItemListService.appendItem(newItem.dataValues.id)
             return res.status(201).json({...newItem.dataValues, infos, itemTypes})
         } catch(e) {
             next(ApiError.internal(e.message))
@@ -137,8 +140,12 @@ class ItemsController {
                 image: imgFileName
             }, {where: {id}, returning: true})
             itemTypes = itemTypes.filter(elem => elem)
+            const updatedItem = newItems[0].dataValues
+            if (!updatedItem.prev && !updatedItem.next) {
+                await ItemListService.appendItem(updatedItem.id)
+            }
             return res.json({
-                ...newItems[0].dataValues, 
+                ...updatedItem, 
                 infos: newInfos.filter(elem => elem), 
                 itemTypes: itemTypes.length>0 ? itemTypes : oldItem.menu_item_types
             })
@@ -148,12 +155,63 @@ class ItemsController {
         }
     }
 
+    // PUT /:id/increment
+    async incrementItemPosition(req, res, next) {
+        try {
+            const id = req.params.id
+            let oldItem = await IDValidators.isItemIdValid(id)
+            if (!oldItem) return next(ApiError.badRequest('Invalid ID'))
+            if (!oldItem.next) return next(ApiError.badRequest("Cannot increment item at the end of the list"))
+            const incId = oldItem.id
+            const decId = oldItem.next
+            const nextItem = await MenuItem.findByPk(decId)
+            if (!nextItem) return next(ApiError.internal('Invalid next item ID'))
+            let leftBoundaryId
+            let rightBoundaryId
+            if (!oldItem.prev && !nextItem.next) {
+                leftBoundaryId = 0
+                rightBoundaryId = 0
+            } else if (!oldItem.prev) {
+                leftBoundaryId = 0
+                rightBoundaryId = nextItem.next
+                await MenuItem.update({prev: incId}, {where: {id: rightBoundaryId}})
+            } else if (!nextItem.next) {
+                leftBoundaryId = oldItem.prev
+                rightBoundaryId = 0
+                await MenuItem.update({next: decId}, {where: {id: leftBoundaryId}})
+            } else {
+                leftBoundaryId = leftBoundaryId = oldItem.prev
+                rightBoundaryId = nextItem.next
+                await MenuItem.update({next: decId}, {where: {id: leftBoundaryId}})
+                await MenuItem.update({prev: incId}, {where: {id: rightBoundaryId}})
+            }
+            console.log(leftBoundaryId, incId, decId, rightBoundaryId);
+            await MenuItem.update({prev: decId, next: rightBoundaryId}, {where: {id: incId}})
+            await MenuItem.update({prev: leftBoundaryId, next: incId}, {where: {id: decId}})
+            res.status(201).json({message: 'Successfully updated order of items'})
+        } catch(e) {
+            console.log(e);
+            next(ApiError.internal(e.message))
+        }
+    }
+
+    // PUT /:id/decrement
+    async decrement(req, res, next) {
+        const id = req.params.id
+        let oldItem = await IDValidators.isItemIdValid(id)
+        if (!oldItem) return next(ApiError.badRequest('Invalid ID'))
+        if (!oldItem.prev) return next(ApiError.badRequest("Cannot decrement item at the beginning of the list"))
+        req.params.id = oldItem.prev
+        next()
+    }
+
     // DELETE /:id
     async deleteItem(req, res, next) {
         try {
             const id = req.params.id
             const oldItem = await IDValidators.isItemIdValid(id)
             if (!oldItem) return next(ApiError.badRequest('Invalid ID'))
+            await ItemListService.deleteItemFromList(id)
             await MenuItem.destroy({where: {id}})
             return res.sendStatus(204)
         } catch(e) {

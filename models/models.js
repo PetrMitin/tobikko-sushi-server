@@ -43,7 +43,9 @@ const MenuItem = sequelize.define('menu_item', {
     halfportionprice: {type: DataTypes.FLOAT, allowNull: true, defaultValue: null}, 
     halfportionmass: {type: DataTypes.FLOAT},
     massInGramms: {type: DataTypes.FLOAT, allowNull: false},
-    image: {type: DataTypes.STRING}
+    image: {type: DataTypes.STRING},
+    prev: {type: DataTypes.INTEGER}, // 0 if beginning of list
+    next: {type: DataTypes.INTEGER} // 0 if the end of list
 }, {hooks: true})
 
 const MenuItemType = sequelize.define('menu_item_type', {
