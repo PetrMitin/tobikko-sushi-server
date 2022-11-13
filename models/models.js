@@ -64,6 +64,12 @@ const TypeItem =  sequelize.define('type_item', {
     id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true}
 }, {hooks: true})
 
+const Discount = sequelize.define('discount', {
+    id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+    active: {type: DataTypes.BOOLEAN, defaultValue: false},
+    name: {type: DataTypes.STRING, defaultValue: '20%'}
+}, {hooks: true})
+
 User.hasOne(Token, {onDelete: 'CASCADE'})
 Token.belongsTo(User, {onDelete: 'CASCADE'})
 
@@ -94,5 +100,6 @@ module.exports = {
     MenuItem,
     MenuItemInfo,
     MenuItemType,
-    TypeItem
+    TypeItem,
+    Discount
 }
