@@ -1,4 +1,8 @@
 require('dotenv').config()
+const https = require('https')
+const fs = require('fs')
+const privateKey = fs.readFileSync('./ssl/key.pem')
+const certificate = fs.readFileSync('./ssl/cert.pem')
 const express = require('express')
 const cors = require('cors')
 const path = require('path')
@@ -12,6 +16,7 @@ const errorHandlingMiddleware = require('./middlewares/errorHandlingMiddleware')
 const app = express()
 
 const PORT = process.env.PORT || 4000
+const HTTPS_PORT = process.env.HTTPS_PORT || 443
 
 app.options('*', cors({
     credentials: true,
@@ -42,7 +47,10 @@ const start = async () => {
     try {
         await sequelize.authenticate()
         await sequelize.sync()
-        app.listen(PORT, () => console.log(`Server is running on port ${PORT}`))
+        https.createServer({
+            key: privateKey,
+            cert: certificate
+        }, app).listen(HTTPS_PORT, () => {console.log(`HTTPS server is running on port ${HTTPS_PORT}`)})
     } catch (e) {
         console.log(e)
     }
