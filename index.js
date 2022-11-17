@@ -14,9 +14,14 @@ const fileUpload = require('express-fileupload')
 const errorHandlingMiddleware = require('./middlewares/errorHandlingMiddleware')
 
 const app = express()
+const httpApp = express()
 
 const PORT = process.env.PORT || 4000
 const HTTPS_PORT = process.env.HTTPS_PORT || 443
+
+httpApp.all('*', (req, res, next) => {
+    res.redirect('https://' + req.headers.host + req.url)
+})
 
 app.options('*', cors({
     credentials: true,
@@ -47,6 +52,7 @@ const start = async () => {
     try {
         await sequelize.authenticate()
         await sequelize.sync()
+        httpApp.listen(PORT, () => {console.log(`HTTP app is running on port ${PORT}`)})
         https.createServer({
             key: privateKey,
             cert: certificate
