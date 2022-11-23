@@ -154,7 +154,7 @@ class UserService {
         if (!refreshToken) return ApiError.unauthorized('Invalid token')
         const userData = TokenService.validateRefreshToken(refreshToken)
         const tokenFromDb = await TokenService.findToken(refreshToken)
-        console.log(userData, tokenFromDb);
+        console.log('user data and token:', userData, tokenFromDb);
         if (!userData || !tokenFromDb) {
             return ApiError.unauthorized('Unauthorized')
         }

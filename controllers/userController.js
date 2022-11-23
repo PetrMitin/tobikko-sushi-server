@@ -14,7 +14,7 @@ class UserController {
             if (registrationResult instanceof ApiError) return next(registrationResult)
             if (registrationResult.user.role === 'ADMIN') {
                 // console.log(registrationResult.user)
-                res.cookie('refreshToken', registrationResult.refreshToken, {maxAge: 15*24*60*60*1000, httpOnly: true})
+                res.cookie('refreshToken', registrationResult.refreshToken, {maxAge: 15*24*60*60*1000, httpOnly: true, secure: false})
             }
             return res.status(201).json(registrationResult)
         } catch(e) {
@@ -30,7 +30,8 @@ class UserController {
             const loginResults = await UserService.login(IPAddress, email, password, role)
             if (loginResults instanceof ApiError) return next(loginResults)
             if (loginResults.user.role === 'ADMIN') {
-                res.cookie('refreshToken', loginResults.refreshToken, {maxAge: 15*24*60*60*1000, httpOnly: true})
+                res.cookie('refreshToken', loginResults.refreshToken, {maxAge: 15*24*60*60*1000, httpOnly: true, secure: false})
+                console.log(res)
             }
             return res.json(loginResults)
         } catch (e) {
@@ -78,7 +79,7 @@ class UserController {
             console.log(refreshToken, req.cookies);
             const newTokens = await UserService.refresh(refreshToken)
             if (newTokens instanceof ApiError) return next(newTokens)
-            res.cookie('refreshToken', newTokens.refreshToken, {maxAge: 15*24*60*60*1000, httpOnly: true})
+            res.cookie('refreshToken', newTokens.refreshToken, {maxAge: 15*24*60*60*1000, httpOnly: true, secure: false})
             return res.json(newTokens)
         } catch (e) {
             console.log(e)

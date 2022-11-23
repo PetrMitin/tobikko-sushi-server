@@ -70,6 +70,14 @@ const Discount = sequelize.define('discount', {
     name: {type: DataTypes.STRING, defaultValue: '20%'}
 }, {hooks: true})
 
+const Promotion = sequelize.define('promotion', {
+    id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+    startDate: {type: DataTypes.DATE, allowNull: false},
+    endDate: {type: DataTypes.DATE, allowNull: false},
+    primaryText: {type: DataTypes.STRING, allowNull: false},
+    secondaryText: {type: DataTypes.STRING}
+})
+
 User.hasOne(Token, {onDelete: 'CASCADE'})
 Token.belongsTo(User, {onDelete: 'CASCADE'})
 
@@ -101,5 +109,6 @@ module.exports = {
     MenuItemInfo,
     MenuItemType,
     TypeItem,
-    Discount
+    Discount,
+    Promotion
 }
