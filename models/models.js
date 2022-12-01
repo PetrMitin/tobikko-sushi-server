@@ -67,7 +67,8 @@ const TypeItem =  sequelize.define('type_item', {
 const Discount = sequelize.define('discount', {
     id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
     active: {type: DataTypes.BOOLEAN, defaultValue: false},
-    name: {type: DataTypes.STRING, defaultValue: '20%'}
+    multiplier: {type: DataTypes.FLOAT, defaultValue: 0.8, allowNull: false},
+    name: {type: DataTypes.STRING, defaultValue: 'active'}
 }, {hooks: true})
 
 const Promotion = sequelize.define('promotion', {

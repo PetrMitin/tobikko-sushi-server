@@ -3,23 +3,25 @@ const {Discount, Promotion} = require('../models/models')
 const {DiscountService} = require('../services/discountService')
 
 class DiscountController {
-    async getIsDiscountActive(req, res, next) {
+    async getActiveDiscount(req, res, next) {
         try {
-            const isActive = (await Discount.findOne({where: {name: '20%'}}))?.active || false
-            return res.json({isActive})
+            const activeDiscount = await Discount.findOne({where: {name: 'active'}})
+            if (!activeDiscount) return next(ApiError.notFound())
+            return res.json({...activeDiscount.dataValues})
         } catch(e) {
             next(ApiError.internal(e.message))
         }
     }
 
-    async setIsDiscountActive(req, res, next) {
+    async setActiveDiscount(req, res, next) {
         try {
-            let oldRecord = await Discount.findOne({where: {name: '20%'}})
+            let oldRecord = await Discount.findOne({where: {name: 'active'}})
+            let {multiplier} = req.body
+            if (!multiplier) return next(ApiError.badRequest())
             if (!oldRecord) {
-                oldRecord = await Discount.create({}, {returning: true})
+                oldRecord = await Discount.create({multiplier}, {returning: true})
             }
-            const isActive = req.body.isActive
-            await Discount.update({active: isActive}, {where: {id: oldRecord.id}})
+            await Discount.update({multiplier}, {where: {id: oldRecord.id}})
             return res.sendStatus(200)
         } catch(e) {
             next(ApiError.internal(e.message))

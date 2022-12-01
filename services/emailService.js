@@ -145,7 +145,7 @@ class EmailService {
                     <h3>Имя: ${orderData.name}</h3>
                     <h3>Телефон: ${orderData.phone}</h3>
                     <h3>Электронная почта: ${orderData.email}</h3> 
-                    <h3>Количество персон: ${orderData.numberOfPerson}</h3> 
+                    <h3>Количество персон: ${orderData.numberOfPeople}</h3> 
                     <br/>
                     <h3>Адрес доставки</h3>
                     <h3>Район: ${orderData.deliveryRegion.name}</h3>
