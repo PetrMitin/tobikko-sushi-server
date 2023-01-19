@@ -6,6 +6,7 @@ const path = require('path')
 const uuid = require('uuid')
 const fs = require('fs')
 const { deleteItemFromList, appendItem } = require('../services/itemListService')
+const itemListService = require('../services/itemListService')
 
 class ItemsController {
     // GET /
@@ -159,35 +160,8 @@ class ItemsController {
     async incrementItemPosition(req, res, next) {
         try {
             const id = req.params.id
-            let oldItem = await IDValidators.isItemIdValid(id)
-            if (!oldItem) return next(ApiError.badRequest('Invalid ID'))
-            if (!oldItem.next) return next(ApiError.badRequest("Cannot increment item at the end of the list"))
-            const incId = oldItem.id
-            const decId = oldItem.next
-            const nextItem = await MenuItem.findByPk(decId)
-            if (!nextItem) return next(ApiError.internal('Invalid next item ID'))
-            let leftBoundaryId
-            let rightBoundaryId
-            if (!oldItem.prev && !nextItem.next) {
-                leftBoundaryId = 0
-                rightBoundaryId = 0
-            } else if (!oldItem.prev) {
-                leftBoundaryId = 0
-                rightBoundaryId = nextItem.next
-                await MenuItem.update({prev: incId}, {where: {id: rightBoundaryId}})
-            } else if (!nextItem.next) {
-                leftBoundaryId = oldItem.prev
-                rightBoundaryId = 0
-                await MenuItem.update({next: decId}, {where: {id: leftBoundaryId}})
-            } else {
-                leftBoundaryId = leftBoundaryId = oldItem.prev
-                rightBoundaryId = nextItem.next
-                await MenuItem.update({next: decId}, {where: {id: leftBoundaryId}})
-                await MenuItem.update({prev: incId}, {where: {id: rightBoundaryId}})
-            }
-            console.log(leftBoundaryId, incId, decId, rightBoundaryId);
-            await MenuItem.update({prev: decId, next: rightBoundaryId}, {where: {id: incId}})
-            await MenuItem.update({prev: leftBoundaryId, next: incId}, {where: {id: decId}})
+            const result = await itemListService.incrementItemPosition(id)
+            if (result instanceof ApiError) return next(result)
             res.status(201).json({message: 'Successfully updated order of items'})
         } catch(e) {
             console.log(e);

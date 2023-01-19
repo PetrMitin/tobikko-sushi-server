@@ -57,7 +57,7 @@ const MenuItemType = sequelize.define('menu_item_type', {
 const MenuItemInfo = sequelize.define('menu_item_info', {
     id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
     title: {type: DataTypes.STRING, allowNull: false},
-    info: {type: DataTypes.STRING, allowNull: false}
+    info: {type: DataTypes.TEXT, allowNull: false}
 }, {hooks: true})
 
 const TypeItem =  sequelize.define('type_item', {
@@ -77,6 +77,18 @@ const Promotion = sequelize.define('promotion', {
     endDate: {type: DataTypes.DATE, allowNull: false},
     primaryText: {type: DataTypes.STRING, allowNull: false},
     secondaryText: {type: DataTypes.STRING}
+})
+
+const AboutUsParagraph = sequelize.define('aboutusparagraph', {
+    id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+    text: {type: DataTypes.TEXT, unique: true},
+    prev: {type: DataTypes.INTEGER}, // 0 if beginning of list
+    next: {type: DataTypes.INTEGER} // 0 if the end of list
+})
+
+const AboutUsImage = sequelize.define('aboutusimage', {
+    id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+    filename: {type: DataTypes.STRING, unique: true}
 })
 
 User.hasOne(Token, {onDelete: 'CASCADE'})
@@ -111,5 +123,7 @@ module.exports = {
     MenuItemType,
     TypeItem,
     Discount,
-    Promotion
+    Promotion,
+    AboutUsParagraph,
+    AboutUsImage
 }

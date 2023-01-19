@@ -19,9 +19,11 @@ const httpApp = express()
 const PORT = process.env.PORT || 4000
 const HTTPS_PORT = process.env.HTTPS_PORT || 443
 
-httpApp.all('*', (req, res, next) => {
-    res.redirect('https://' + req.headers.host + req.url)
-})
+if (process.env.NODE_ENV === 'production') {
+    httpApp.all('*', (req, res, next) => {
+        res.redirect('https://' + req.headers.host + req.url)
+    })
+}
 
 app.options('*', cors({
     credentials: true,
@@ -52,11 +54,15 @@ const start = async () => {
     try {
         await sequelize.authenticate()
         await sequelize.sync()
-        httpApp.listen(PORT, () => {console.log(`HTTP app is running on port ${PORT}`)})
-        https.createServer({
-            key: privateKey,
-            cert: certificate
-        }, app).listen(HTTPS_PORT, () => {console.log(`HTTPS server is running on port ${HTTPS_PORT}`)})
+        if (process.env.NODE_ENV === 'production') {
+            httpApp.listen(PORT, () => {console.log(`HTTP app is running on port ${PORT}`)})
+            https.createServer({
+                key: privateKey,
+                cert: certificate
+            }, app).listen(HTTPS_PORT, () => {console.log(`HTTPS server is running on port ${HTTPS_PORT}`)})
+        } else {
+            app.listen(PORT, () => console.log(`HTTP app is running on port ${PORT}`))
+        }
     } catch (e) {
         console.log(e)
     }
